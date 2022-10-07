@@ -24,35 +24,42 @@ const input = document.getElementById("input"); //
 const caja = document.getElementById("caja");
 const loader = document.querySelector(".pokeballs-container");
 
+let idActual;
 let promesas = [];
-
+//https://pokeapi.co/api/v2/language/7
 const pokeFetch = async (id) => {
-  //  console.log("ID==", id);
-
   try {
     const promise = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`);
     const result = await promise.json();
     promesas = [];
     promesas.push(result);
-
+    idActual = id;
     caja.innerHTML = ` 
-    <div class="poke">
-    <img src="${promesas[0].sprites.other.home.front_default}"/>
-    <h2>${promesas[0].name.toUpperCase()}</h2>
+      <div class="poke">
+      <img src="${promesas[0].sprites.other.home.front_default}"/>
+      <h2>${promesas[0].name.toUpperCase()}</h2>
     <span class="exp">EXP:${promesas[0].base_experience}</span>
-    
-    <p class:"id-poke"> #${promesas[0].id}<p>
-    <p class:"height"> #${promesas[0].height / 10}m<p>
-    <p class:"weight"> #${promesas[0].weight / 10}Kg<p>
+    <div class="tipo-poke">${promesas[0].types
+      .map((tipo) => {
+        return `<span class="${tipo.type.name} poke__type"> ${tipo.type.name} </span>`;
+      })
+      .join("")}
+      </div>
+      <p class:"id-poke"> #${promesas[0].id}<p>
+      <p class:"height"> #${promesas[0].height / 10}m<p>
+      <p class:"weight"> #${promesas[0].weight / 10}Kg<p>
     </div>
     
     `;
   } catch (error) {
     const cantPokemones = await fetch(`https://pokeapi.co/api/v2/pokemon`);
-    const result = await cantPokemones.json();
-    //console.log("muestra ===>", result);
-    caja.innerHTML = `<span>Numero excedido, solo tenemos ${result.count} pokemones en la nomina </span>`;
-    console.log("No se ah encontrado la pagina solicitada = ", error);
+    const resultDos = await cantPokemones.json();
+    if (resultDos.count < input.value) {
+      caja.innerHTML = `<span>Hay ${resultDos.count} Pokemones en la nomina</span>`;
+      console.log("No se ah encontrado la pagina solicitada = ", error);
+    } else {
+      caja.innerHTML = `<span>POKEMON CLASIFICADO, NO TENEMOS DATOS DEL MISMO</span>`;
+    }
   }
 };
 
@@ -63,19 +70,20 @@ const loadAndPrint = () => {
     pokeFetch(input.value);
   }, 1500);
 };
-
 const init = () => {
   botonPokemon.addEventListener("click", () => {
     if (input.value === "") {
       return (caja.innerHTML = `No se ingresó valor`);
     } else if (input.value < 1) {
       return (caja.innerHTML = `El numero "${input.value}" no es valido`);
+    } else if (input.value === idActual) {
+      alert("Su pokemon se esta MOSTRANDO!");
     } else {
       loadAndPrint();
-
       return;
     }
   });
 };
 
 init();
+
